@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial - Detector de Enfermedades</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-leaf me-2"></i>
+                Detector de Enfermedades en Maíz
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-arrow-left me-1"></i> Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            Historial de Análisis
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% if analyses %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha y Hora</th>
+                                        <th>Imagen</th>
+                                        <th>Diagnóstico</th>
+                                        <th>Confianza</th>
+                                        <th>Severidad</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for analysis in analyses %}
+                                    <tr>
+                                        <td>{{ analysis.timestamp }}</td>
+                                        <td>
+                                            <img src="{{ url_for('static', filename='uploads/' + analysis.filename) }}" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;" 
+                                                 class="rounded"
+                                                 alt="Imagen análisis">
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ analysis.disease_info.color }}">
+                                                {{ analysis.prediction }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px; width: 100px;">
+                                                <div class="progress-bar bg-{{ analysis.disease_info.color }}" 
+                                                     style="width: {{ analysis.confidence * 100 }}%">
+                                                    {{ (analysis.confidence * 100)|round|int }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ analysis.disease_info.color }}">
+                                                {{ analysis.disease_info.severity }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="viewAnalysis({{ analysis.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-history fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay análisis registrados</h5>
+                            <p class="text-muted">Realiza tu primer análisis para ver el historial aquí.</p>
+                            <a href="/" class="btn btn-primary">
+                                <i class="fas fa-camera me-2"></i>Realizar Primer Análisis
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function viewAnalysis(analysisId) {
+            alert('Ver detalles del análisis ' + analysisId + ' - Funcionalidad en desarrollo');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Enfermedades en Maíz</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #7cb342;
+            --accent: #ffd54f;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+        }
+        
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .upload-area {
+            border: 3px dashed var(--secondary);
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            background: #f8fff9;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #f0fff0;
+            transform: translateY(-2px);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .result-image {
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .result-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .disease-card {
+            border-left: 5px solid;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .disease-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .confidence-badge {
+            font-size: 1.1em;
+            padding: 0.5em 1em;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: var(--primary);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-leaf me-2"></i>
+                Detector de Enfermedades en Maíz
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">
+                            <i class="fas fa-home me-1"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-chart-bar me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history">
+                            <i class="fas fa-history me-1"></i> Historial
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/camera">
+                            <i class="fas fa-camera me-1"></i> Cámara
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Hero Section -->
+                <div class="text-center mb-5">
+                    <h1 class="display-4 fw-bold text-white mb-3">
+                        Diagnóstico Inteligente de Maíz
+                    </h1>
+                    <p class="lead text-white mb-4">
+                        Detecta enfermedades en hojas de maíz usando inteligencia artificial y visión por computadora
+                    </p>
+                </div>
+
+                <!-- Main Card -->
+                <div class="main-card p-4 p-md-5 mb-5">
+                    <!-- Upload Section -->
+                    <div class="text-center mb-5">
+                        <h3 class="text-primary mb-3">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                            Sube una Imagen para Analizar
+                        </h3>
+                        <p class="text-muted">Obtén un diagnóstico instantáneo de enfermedades comunes del maíz</p>
+                    </div>
+
+                    <div class="upload-area mb-4" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h4 class="text-primary">Arrastra y suelta tu imagen aquí</h4>
+                        <p class="text-muted">O haz clic para seleccionar un archivo</p>
+                        <small class="text-muted">Formatos soportados: JPG, PNG, GIF (Máx. 16MB)</small>
+                    </div>
+
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <input type="file" id="fileInput" name="file" accept="image/*" hidden>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success btn-lg px-5" id="analyzeBtn">
+                                <i class="fas fa-search me-2"></i>
+                                Analizar Imagen
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 text-center">
+                            <a href="/camera" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-camera me-2"></i>
+                                Usar Cámara
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <a href="/history" class="btn btn-outline-info btn-lg w-100">
+                                <i class="fas fa-history me-2"></i>
+                                Ver Historial
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" class="main-card p-4 p-md-5 mb-5" style="display: none;">
+                    <h3 class="text-center text-primary mb-4">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        Resultados del Análisis
+                    </h3>
+                    
+                    <!-- Images Comparison -->
+                    <div class="row mb-5">
+                        <div class="col-md-6 mb-4">
+                            <div class="text-center">
+                                <img id="originalImage" class="result-image img-fluid w-100" alt="Imagen original">
+                                <p class="mt-2 text-muted">
+                                    <i class="fas fa-image me-1"></i>Imagen Original
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="text-center">
+                                <img id="annotatedImage" class="result-image img-fluid w-100" alt="Imagen analizada">
+                                <p class="mt-2 text-muted">
+                                    <i class="fas fa-search me-1"></i>Análisis con Diagnóstico
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diagnosis Card -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div id="diagnosisCard" class="disease-card p-4 rounded">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h3 id="diseaseName" class="mb-2"></h3>
+                                        <p class="mb-1 text-muted" id="diseaseDescription"></p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Severidad: <span id="diseaseSeverity"></span>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <span id="confidenceBadge" class="badge confidence-badge"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disease Information -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Información Detallada de la Enfermedad
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <h6 class="text-primary">
+                                                <i class="fas fa-eye me-2"></i>Síntomas Visuales
+                                            </h6>
+                                            <p id="diseaseSymptoms" class="text-muted"></p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <h6 class="text-success">
+                                                <i class="fas fa-stethoscope me-2"></i>Tratamiento Recomendado
+                                            </h6>
+                                            <p id="diseaseTreatment" class="text-muted"></p>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <h6 class="text-warning">
+                                                <i class="fas fa-shield-alt me-2"></i>Medidas de Prevención
+                                            </h6>
+                                            <p id="diseasePrevention" class="text-muted"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary me-2" onclick="resetAnalysis()">
+                            <i class="fas fa-redo me-2"></i>
+                            Nuevo Análisis
+                        </button>
+                        <button class="btn btn-outline-success" onclick="shareResults()">
+                            <i class="fas fa-share me-2"></i>
+                            Compartir Resultados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="loading" class="text-center mt-4" style="display: none;">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Analizando...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Procesando imagen con inteligencia artificial...</p>
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <!-- Error -->
+                <div id="error" class="alert alert-danger mt-4" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="main-card p-5">
+                    <h3 class="text-center text-primary mb-5">¿Cómo Funciona Nuestro Sistema?</h3>
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-upload text-white"></i>
+                            </div>
+                            <h5>1. Sube Imagen</h5>
+                            <p class="text-muted">Captura o sube una foto de la hoja de maíz</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-cogs text-white"></i>
+                            </div>
+                            <h5>2. Análisis IA</h5>
+                            <p class="text-muted">Nuestra IA analiza patrones y colores</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-diagnoses text-white"></i>
+                            </div>
+                            <h5>3. Diagnóstico</h5>
+                            <p class="text-muted">Identifica enfermedades con alta precisión</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-prescription text-white"></i>
+                            </div>
+                            <h5>4. Recomendaciones</h5>
+                            <p class="text-muted">Recibe tratamientos y medidas preventivas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>
+                        <i class="fas fa-leaf me-2"></i>Detector de Enfermedades en Maíz
+                    </h5>
+                    <p class="mb-0">Sistema inteligente de diagnóstico agrícola</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-0">&copy; 2024 Sistema de Detección de Enfermedades. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Elementos DOM
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingDiv = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+        const errorDiv = document.getElementById('error');
+
+        // Elementos de resultados
+        const originalImage = document.getElementById('originalImage');
+        const annotatedImage = document.getElementById('annotatedImage');
+        const diseaseName = document.getElementById('diseaseName');
+        const diseaseDescription = document.getElementById('diseaseDescription');
+        const diseaseSymptoms = document.getElementById('diseaseSymptoms');
+        const diseaseTreatment = document.getElementById('diseaseTreatment');
+        const diseasePrevention = document.getElementById('diseasePrevention');
+        const diseaseSeverity = document.getElementById('diseaseSeverity');
+        const confidenceBadge = document.getElementById('confidenceBadge');
+        const diagnosisCard = document.getElementById('diagnosisCard');
+
+        // Manejar envío del formulario
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!fileInput.files[0]) {
+                showError('Por favor selecciona una imagen primero');
+                return;
+            }
+            analyzeImage(fileInput.files[0]);
+        });
+
+        // Mostrar nombre del archivo seleccionado
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                errorDiv.style.display = 'none';
+                resultsDiv.style.display = 'none';
+                // Mostrar preview de imagen
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    originalImage.src = e.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Arrastrar y soltar
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#2e7d32';
+            this.style.background = '#f0fff0';
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#7cb342';
+            this.style.background = '#f8fff9';
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#7cb342';
+            this.style.background = '#f8fff9';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                // Disparar evento change
+                const event = new Event('change', { bubbles: true });
+                fileInput.dispatchEvent(event);
+            }
+        });
+
+        function analyzeImage(file) {
+            // Mostrar loading
+            loadingDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analizando...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/analyze', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.style.display = 'none';
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<i class="fas fa-search me-2"></i>Analizar Imagen';
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<i class="fas fa-search me-2"></i>Analizar Imagen';
+                showError('Error de conexión: ' + error.message);
+            });
+        }
+
+        function displayResults(data) {
+            // Mostrar imágenes
+            originalImage.src = data.image_url;
+            annotatedImage.src = data.annotated_image_url;
+
+            // Mostrar diagnóstico
+            diseaseName.textContent = data.prediction;
+            diseaseDescription.textContent = data.disease_info.description;
+            diseaseSymptoms.textContent = data.disease_info.symptoms;
+            diseaseTreatment.textContent = data.disease_info.treatment;
+            diseasePrevention.textContent = data.disease_info.prevention;
+            diseaseSeverity.textContent = data.disease_info.severity;
+
+            // Configurar confianza
+            const confidencePercent = Math.round(data.confidence * 100);
+            confidenceBadge.textContent = `${confidencePercent}% de Confianza`;
+
+            // Estilizar según el diagnóstico
+            styleDiagnosisCard(data.prediction, confidencePercent, data.disease_info.color);
+
+            // Mostrar resultados
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+
+            // Mostrar notificación de éxito
+            showNotification('Análisis completado exitosamente', 'success');
+        }
+
+        function styleDiagnosisCard(prediction, confidence, color) {
+            // Reset classes
+            diagnosisCard.className = 'disease-card p-4 rounded';
+            
+            const colorClasses = {
+                'success': 'border-success bg-success text-white',
+                'warning': 'border-warning bg-warning text-dark',
+                'danger': 'border-danger bg-danger text-white'
+            };
+            
+            const badgeClasses = {
+                'success': 'bg-light text-success',
+                'warning': 'bg-light text-warning',
+                'danger': 'bg-light text-danger'
+            };
+            
+            diagnosisCard.classList.add(...colorClasses[color].split(' '));
+            confidenceBadge.className = `badge confidence-badge ${badgeClasses[color]}`;
+        }
+
+        function showError(message) {
+            errorDiv.style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+            errorDiv.scrollIntoView({ behavior: 'smooth' });
+            showNotification(message, 'error');
+        }
+
+        function showNotification(message, type) {
+            // Crear notificación toast
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            container.appendChild(toast);
+            
+            document.body.appendChild(container);
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remover después de cerrar
+            toast.addEventListener('hidden.bs.toast', function() {
+                container.remove();
+            });
+        }
+
+        function resetAnalysis() {
+            fileInput.value = '';
+            resultsDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showNotification('Listo para nuevo análisis', 'info');
+        }
+
+        function shareResults() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Resultado de Análisis de Maíz',
+                    text: `Diagnóstico: ${diseaseName.textContent} - Confianza: ${confidenceBadge.textContent}`,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback para navegadores que no soportan Web Share API
+                const text = `Diagnóstico de Maíz: ${diseaseName.textContent}\nConfianza: ${confidenceBadge.textContent}\n\nVer detalles en: ${window.location.href}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('Resultados copiados al portapapeles', 'success');
+                });
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Sistema de detección de enfermedades cargado');
+        });
+    </script>
+</body>
+</html>
