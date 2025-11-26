@@ -246,9 +246,5 @@ def camera():
     return render_template('camera.html')
 
 if __name__ == '__main__':
-    print("🌽 Iniciando Detector de Enfermedades de Maíz...")
-    print("📍 URL principal: http://localhost:5000")
-    print("📊 Dashboard: http://localhost:5000/dashboard")
-    print("📚 Historial: http://localhost:5000/history")
-    print("📷 Cámara: http://localhost:5000/camera")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Solo ejecutar en local, en producción usará gunicorn
+    app.run(debug=False, host='0.0.0.0', port=5000)
